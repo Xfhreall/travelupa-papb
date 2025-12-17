@@ -1,7 +1,8 @@
-# Nama = Risqi Achmad Fahreal
-# NIM = 235150201111048
 
 # Travelupa - Aplikasi Rekomendasi Tempat Wisata
+
+**Nama = Risqi Achmad Fahreal**\
+**NIM = 235150201111048**
 
 Aplikasi Android berbasis Jetpack Compose untuk menyimpan dan mengelola rekomendasi tempat wisata dengan integrasi Firebase dan Room Database.
 
