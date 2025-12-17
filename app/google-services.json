@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "130004502640",
+    "project_id": "finalproject-edf95",
+    "storage_bucket": "finalproject-edf95.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:130004502640:android:e6cc52a8b45731ea310cb5",
+        "android_client_info": {
+          "package_name": "com.example.finalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP1qL9UPlE1BpmxW7ueiO5iVf6q36IX_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:130004502640:android:67639fe08d3968cf310cb5",
+        "android_client_info": {
+          "package_name": "com.example.travelupa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP1qL9UPlE1BpmxW7ueiO5iVf6q36IX_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
