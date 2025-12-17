@@ -119,7 +119,7 @@ app/
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/username/travelupa.git
+   git clone https://github.com/Xfhreall/travelupa-papb
    cd travelupa
    ```
 
