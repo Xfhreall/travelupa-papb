@@ -4,36 +4,45 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.travelupa.navigation.Screen
 import androidx.room.Room
 import com.example.travelupa.data.database.AppDatabase
-import com.example.travelupa.ui.screen.GalleryScreen
-import com.example.travelupa.ui.screen.GreetingScreen
-import com.example.travelupa.ui.screen.LoginScreen
-import com.example.travelupa.ui.screen.RegisterScreen
-import com.example.travelupa.ui.screen.RekomendasiTempatScreen
+import com.example.travelupa.data.seeder.WisataSeeder
+import com.example.travelupa.ui.components.TravelupaBottomBar
+import com.example.travelupa.ui.screen.*
 import com.example.travelupa.ui.theme.TravelupaTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
+        
+        // Run seeder on first launch (use forceReseed once to update data with lat/long)
+        CoroutineScope(Dispatchers.IO).launch {
+            WisataSeeder.forceReseed(this@MainActivity)
+        }
+        
         val currentUser = FirebaseAuth.getInstance().currentUser
         setContent {
             TravelupaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavigation(currentUser)
                 }
@@ -45,7 +54,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(currentUser: FirebaseUser?) {
     val navController = rememberNavController()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     
     // Initialize Room database
     val db = remember {
@@ -57,70 +66,139 @@ fun AppNavigation(currentUser: FirebaseUser?) {
     }
     val imageDao = db.imageDao()
     
-    NavHost(
-        navController = navController,
-        startDestination = if (currentUser != null) Screen.RekomendasiTempat.route else Screen.Greeting.route
-    ) {
-        composable(Screen.Greeting.route) {
-            GreetingScreen(
-                onStart = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Greeting.route) { inclusive = true }
-                    }
-                }
-            )
+    Scaffold(
+        bottomBar = {
+            TravelupaBottomBar(navController = navController)
         }
-        
-        composable(Screen.Login.route) {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Screen.RekomendasiTempat.route) { 
-                        popUpTo(Screen.Login.route) { inclusive = true }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = if (currentUser != null) Screen.Home.route else Screen.Greeting.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Greeting.route) {
+                GreetingScreen(
+                    onStart = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Greeting.route) { inclusive = true }
+                        }
                     }
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Screen.Register.route)
-                }
-            )
-        }
-        
-        composable(Screen.Register.route) {
-            RegisterScreen(
-                onRegisterSuccess = {
-                    navController.navigate(Screen.RekomendasiTempat.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                )
+            }
+            
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) { 
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
                     }
-                },
-                onBackToLogin = {
-                    navController.navigateUp()
-                }
-            )
-        }
-        
-        composable(Screen.RekomendasiTempat.route) {
-            RekomendasiTempatScreen(
-                onBackToLogin = {
-                    FirebaseAuth.getInstance().signOut()
-                    navController.navigate(Screen.Greeting.route) {
-                        popUpTo(Screen.RekomendasiTempat.route) { inclusive = true }
+                )
+            }
+            
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onBackToLogin = {
+                        navController.navigateUp()
                     }
-                },
-                onNavigateToGallery = {
-                    navController.navigate(Screen.Gallery.route)
-                }
-            )
-        }
-        
-        composable(Screen.Gallery.route) {
-            GalleryScreen(
-                imageDao = imageDao,
-                onImageSelected = { _ ->
-                    // Handle image selection if needed
-                },
-                onBack = {
-                    navController.navigateUp()
-                }
-            )
+                )
+            }
+            
+            // Main screens with bottom navigation
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    onNavigateToDetail = { tempat ->
+                        navController.navigate(Screen.Detail.createRoute(tempat.id))
+                    }
+                )
+            }
+            
+            composable(Screen.Maps.route) {
+                MapsScreen()
+            }
+            
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    onNavigateToGallery = {
+                        navController.navigate(Screen.Gallery.route)
+                    },
+                    onNavigateToAddWisata = {
+                        navController.navigate(Screen.AddWisata.route)
+                    },
+                    onNavigateToFavorite = {
+                        navController.navigate(Screen.Favorite.route)
+                    },
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate(Screen.Greeting.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            
+            // Detail screen
+            composable(
+                route = Screen.Detail.route,
+                arguments = listOf(navArgument("tempatId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tempatId = backStackEntry.arguments?.getString("tempatId") ?: ""
+                DetailScreen(
+                    tempatId = tempatId,
+                    onBack = { navController.navigateUp() }
+                )
+            }
+            
+            // Favorite screen
+            composable(Screen.Favorite.route) {
+                FavoriteScreen(
+                    onNavigateToDetail = { tempatId ->
+                        navController.navigate(Screen.Detail.createRoute(tempatId))
+                    },
+                    onBack = { navController.navigateUp() }
+                )
+            }
+            
+            // Secondary screens
+            composable(Screen.Gallery.route) {
+                GalleryScreen(
+                    imageDao = imageDao,
+                    onImageSelected = { _ ->
+                        // Handle image selection if needed
+                    },
+                    onBack = {
+                        navController.navigateUp()
+                    }
+                )
+            }
+            
+            composable(Screen.AddWisata.route) {
+                AddWisataScreen(
+                    onBack = {
+                        navController.navigateUp()
+                    },
+                    onSuccess = {
+                        navController.navigateUp()
+                    }
+                )
+            }
+            
+            // Legacy route for backward compatibility
+            composable(Screen.RekomendasiTempat.route) {
+                HomeScreen(
+                    onNavigateToDetail = { tempat ->
+                        navController.navigate(Screen.Detail.createRoute(tempat.id))
+                    }
+                )
+            }
         }
     }
 }

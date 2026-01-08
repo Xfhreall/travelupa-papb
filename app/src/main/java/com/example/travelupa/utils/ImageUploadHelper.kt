@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.room.Room
 import com.example.travelupa.data.database.AppDatabase
 import com.example.travelupa.data.entity.ImageEntity
-import com.example.travelupa.ui.screen.TempatWisata
+import com.example.travelupa.data.model.TempatWisata
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +15,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
+/**
+ * Upload image to Firebase Storage and save wisata to Firestore
+ */
 suspend fun uploadImageToFirestore(
     firestore: FirebaseFirestore,
     context: Context,
@@ -32,25 +35,28 @@ suspend fun uploadImageToFirestore(
         
         val imageDao = db.imageDao()
         
+        // Save locally first
         val localPath = saveImageLocally(context, imageUri)
         
         withContext(Dispatchers.IO) {
-            val imageId = imageDao.insert(ImageEntity(localPath = localPath))
+            // Save to Room DB
+            imageDao.insert(ImageEntity(localPath = localPath))
             
             val storage = FirebaseStorage.getInstance()
             val storageRef = storage.reference
             val imageRef = storageRef.child("images/${UUID.randomUUID()}.jpg")
             
-            imageRef.putFile(Uri.parse(localPath)).await()
+            // Use the original imageUri for upload, not the local file path
+            imageRef.putFile(imageUri).await()
             
             val downloadUrl = imageRef.downloadUrl.await()
             
             val updatedTempatWisata = tempatWisata.copy(
-                gambarUriString = downloadUrl.toString()
+                gambarUrl = downloadUrl.toString()
             )
             
             firestore.collection("tempat_wisata")
-                .add(updatedTempatWisata)
+                .add(updatedTempatWisata.toMap())
                 .addOnSuccessListener {
                     onSuccess(updatedTempatWisata)
                 }
@@ -59,10 +65,14 @@ suspend fun uploadImageToFirestore(
                 }
         }
     } catch (e: Exception) {
+        Log.e("ImageUpload", "Error uploading image", e)
         onFailure(e)
     }
 }
 
+/**
+ * Save image to local storage
+ */
 fun saveImageLocally(context: Context, uri: Uri): String {
     return try {
         val inputStream = context.contentResolver.openInputStream(uri)
@@ -83,5 +93,20 @@ fun saveImageLocally(context: Context, uri: Uri): String {
     } catch (e: Exception) {
         Log.e("ImageSave", "Error saving image", e)
         throw e
+    }
+}
+
+/**
+ * Upload image to Firebase Storage and return the download URL
+ */
+suspend fun uploadImageToStorage(imageUri: Uri): String? {
+    return try {
+        val storage = FirebaseStorage.getInstance()
+        val imageRef = storage.reference.child("wisata/${UUID.randomUUID()}.jpg")
+        imageRef.putFile(imageUri).await()
+        imageRef.downloadUrl.await().toString()
+    } catch (e: Exception) {
+        Log.e("ImageUpload", "Error uploading to storage", e)
+        null
     }
 }
