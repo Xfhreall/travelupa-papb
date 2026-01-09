@@ -52,7 +52,6 @@ fun MapsScreen() {
             isLoading = false
         }
     }
-    // Convert wisata to LocationItem
     val locations = wisataList.map { wisata ->
         LocationItem(
             id = wisata.id,
@@ -65,7 +64,7 @@ fun MapsScreen() {
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
+            MediumTopAppBar(
                 title = {
                     Column {
                         Text(
@@ -155,7 +154,6 @@ fun MapsScreen() {
                         )
                     }
                     
-                    // Bottom spacing for bottom nav
                     item {
                         Spacer(modifier = Modifier.height(80.dp))
                     }
@@ -205,7 +203,6 @@ private fun LocationCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Location Icon with gradient background
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -251,7 +248,6 @@ private fun LocationCard(
                 )
             }
             
-            // Navigate icon button
             FilledIconButton(
                 onClick = onNavigateClick,
                 colors = IconButtonDefaults.filledIconButtonColors(

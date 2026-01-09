@@ -37,6 +37,9 @@ import com.example.travelupa.R
 import com.example.travelupa.data.model.Kategori
 import com.example.travelupa.data.model.TempatWisata
 import com.example.travelupa.data.repository.WisataRepository
+import com.example.travelupa.ui.components.ActiveFilterRow
+import com.example.travelupa.ui.components.FilterBottomSheet
+import com.example.travelupa.viewmodel.AdvancedFilterViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -46,16 +49,16 @@ import java.util.Locale
 fun HomeScreen(
     onNavigateToDetail: (TempatWisata) -> Unit
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { WisataRepository() }
+    val filterViewModel = remember { AdvancedFilterViewModel() }
     
     var wisataList by remember { mutableStateOf<List<TempatWisata>>(emptyList()) }
     var filteredList by remember { mutableStateOf<List<TempatWisata>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
-    var selectedKategori by remember { mutableStateOf<String?>(null) }
+    var showFilterSheet by remember { mutableStateOf(false) }
     
     LaunchedEffect(Unit) {
         repository.getAllWisata().collect { list ->
@@ -64,13 +67,11 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(wisataList, searchQuery, selectedKategori) {
-        filteredList = wisataList.filter { wisata ->
-            val matchesSearch = searchQuery.isEmpty() || 
-                wisata.nama.contains(searchQuery, ignoreCase = true)
-            val matchesKategori = selectedKategori == null || wisata.kategoriId == selectedKategori
-            matchesSearch && matchesKategori
+    LaunchedEffect(wisataList, searchQuery, filterViewModel.filterState) {
+        val searchFiltered = wisataList.filter { wisata ->
+            searchQuery.isEmpty() || wisata.nama.contains(searchQuery, ignoreCase = true)
         }
+        filteredList = filterViewModel.applyFilters(searchFiltered)
     }
 
     Scaffold(
@@ -122,30 +123,20 @@ fun HomeScreen(
                 )
             )
             
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item {
-                    FilterChip(
-                        selected = selectedKategori == null,
-                        onClick = { selectedKategori = null },
-                        label = { Text("Semua") }
-                    )
-                }
-                items(Kategori.ALL) { kategori ->
-                    FilterChip(
-                        selected = selectedKategori == kategori.id,
-                        onClick = { 
-                            selectedKategori = if (selectedKategori == kategori.id) null else kategori.id 
-                        },
-                        label = { Text(kategori.nama) }
-                    )
-                }
-            }
+            ActiveFilterRow(
+                filterState = filterViewModel.filterState,
+                onAddFilterClick = { showFilterSheet = true },
+                onRemoveFilter = { filterViewModel.removeFilter(it) }
+            )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            FilterBottomSheet(
+                isVisible = showFilterSheet,
+                repository = repository,
+                onDismiss = { showFilterSheet = false },
+                onApplyFilter = { condition ->
+                    filterViewModel.addFilter(condition)
+                }
+            )
             
             when {
                 isLoading -> {
@@ -205,14 +196,14 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = if (searchQuery.isNotEmpty() || selectedKategori != null) 
+                                text = if (searchQuery.isNotEmpty() || filterViewModel.filterState.hasActiveFilters) 
                                     "Tidak ada hasil" else "Belum ada tempat wisata",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = if (searchQuery.isNotEmpty() || selectedKategori != null)
+                                text = if (searchQuery.isNotEmpty() || filterViewModel.filterState.hasActiveFilters)
                                     "Coba kata kunci atau filter lain" else "Tambahkan melalui menu Profile",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline

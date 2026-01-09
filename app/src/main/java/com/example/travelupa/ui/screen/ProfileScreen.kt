@@ -40,7 +40,6 @@ fun ProfileScreen(
     val scrollState = rememberScrollState()
     var showLogoutDialog by remember { mutableStateOf(false) }
     
-    // Gradient for header
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(GradientTealStart, GradientTealEnd)
     )
@@ -51,7 +50,6 @@ fun ProfileScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
-        // Profile Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -62,7 +60,6 @@ fun ProfileScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Avatar
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -96,7 +93,6 @@ fun ProfileScreen(
             }
         }
         
-        // Menu Items
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,7 +107,6 @@ fun ProfileScreen(
             Column(
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
-                // Add Wisata - NEW MENU ITEM
                 ProfileMenuItem(
                     icon = Icons.Default.Add,
                     title = "Tambah Wisata",
@@ -159,7 +154,6 @@ fun ProfileScreen(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Logout Button
         OutlinedButton(
             onClick = { showLogoutDialog = true },
             modifier = Modifier
@@ -181,7 +175,6 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(100.dp)) // For bottom nav
     }
     
-    // Logout Confirmation Dialog
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },

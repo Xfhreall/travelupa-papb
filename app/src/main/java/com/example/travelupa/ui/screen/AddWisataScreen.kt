@@ -54,7 +54,6 @@ fun AddWisataScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { WisataRepository() }
     
-    // Form states
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
     var harga by remember { mutableStateOf("") }
@@ -63,30 +62,25 @@ fun AddWisataScreen(
     var imageUrl by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     
-    // Dropdown states
     var selectedKategori by remember { mutableStateOf<Kategori?>(null) }
     var selectedJenisTempat by remember { mutableStateOf<JenisTempat?>(null) }
     var selectedProvinsi by remember { mutableStateOf<Provinsi?>(null) }
     
-    // Dropdown expanded states
     var kategoriExpanded by remember { mutableStateOf(false) }
     var jenisTempatExpanded by remember { mutableStateOf(false) }
     var provinsiExpanded by remember { mutableStateOf(false) }
     
-    // Image input mode: true = URL, false = File
     var useUrlInput by remember { mutableStateOf(false) }
     
-    // Loading state
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
-    // Image picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         selectedImageUri = uri
         if (uri != null) {
-            imageUrl = "" // Clear URL if image selected
+            imageUrl = ""
         }
     }
     
@@ -95,7 +89,6 @@ fun AddWisataScreen(
         colors = listOf(GradientTealStart, GradientTealEnd)
     )
 
-    // Validation
     val isFormValid = nama.isNotBlank() && 
                       deskripsi.isNotBlank() && 
                       selectedKategori != null && 
@@ -133,7 +126,6 @@ fun AddWisataScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Image Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -151,7 +143,6 @@ fun AddWisataScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     
-                    // Toggle between URL and File upload
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -175,7 +166,6 @@ fun AddWisataScreen(
                     }
                     
                     if (useUrlInput) {
-                        // URL Input
                         OutlinedTextField(
                             value = imageUrl,
                             onValueChange = { 
@@ -189,7 +179,6 @@ fun AddWisataScreen(
                             singleLine = true
                         )
                     } else {
-                        // File picker
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -238,7 +227,6 @@ fun AddWisataScreen(
                         }
                     }
                     
-                    // Preview if URL is entered
                     if (useUrlInput && imageUrl.isNotBlank()) {
                         Box(
                             modifier = Modifier
@@ -262,7 +250,6 @@ fun AddWisataScreen(
                 }
             }
             
-            // Form Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -280,7 +267,6 @@ fun AddWisataScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     
-                    // Nama
                     OutlinedTextField(
                         value = nama,
                         onValueChange = { nama = it },
@@ -289,8 +275,7 @@ fun AddWisataScreen(
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
-                    
-                    // Deskripsi
+
                     OutlinedTextField(
                         value = deskripsi,
                         onValueChange = { deskripsi = it },
@@ -301,7 +286,6 @@ fun AddWisataScreen(
                         maxLines = 5
                     )
                     
-                    // Harga
                     OutlinedTextField(
                         value = harga,
                         onValueChange = { harga = it.filter { c -> c.isDigit() } },
@@ -314,7 +298,6 @@ fun AddWisataScreen(
                         prefix = { Text("Rp ") }
                     )
                     
-                    // Koordinat Section
                     Text(
                         "Koordinat Lokasi",
                         style = MaterialTheme.typography.labelLarge,
@@ -326,7 +309,6 @@ fun AddWisataScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Latitude
                         OutlinedTextField(
                             value = latitude,
                             onValueChange = { latitude = it.filter { c -> c.isDigit() || c == '.' || c == '-' } },
@@ -338,7 +320,6 @@ fun AddWisataScreen(
                             singleLine = true
                         )
                         
-                        // Longitude
                         OutlinedTextField(
                             value = longitude,
                             onValueChange = { longitude = it.filter { c -> c.isDigit() || c == '.' || c == '-' } },
@@ -351,7 +332,6 @@ fun AddWisataScreen(
                         )
                     }
                     
-                    // Kategori Dropdown
                     ExposedDropdownMenuBox(
                         expanded = kategoriExpanded,
                         onExpandedChange = { kategoriExpanded = it }
@@ -383,7 +363,6 @@ fun AddWisataScreen(
                         }
                     }
                     
-                    // Jenis Tempat Dropdown
                     ExposedDropdownMenuBox(
                         expanded = jenisTempatExpanded,
                         onExpandedChange = { jenisTempatExpanded = it }
@@ -415,7 +394,6 @@ fun AddWisataScreen(
                         }
                     }
                     
-                    // Provinsi Dropdown
                     ExposedDropdownMenuBox(
                         expanded = provinsiExpanded,
                         onExpandedChange = { provinsiExpanded = it }
@@ -449,7 +427,6 @@ fun AddWisataScreen(
                 }
             }
             
-            // Error message
             errorMessage?.let { error ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -466,7 +443,6 @@ fun AddWisataScreen(
                 }
             }
             
-            // Submit Button
             Button(
                 onClick = {
                     scope.launch {
@@ -474,7 +450,6 @@ fun AddWisataScreen(
                         errorMessage = null
                         
                         try {
-                            // Upload image if file selected
                             val finalImageUrl = if (selectedImageUri != null) {
                                 val storage = FirebaseStorage.getInstance()
                                 val imageRef = storage.reference.child("wisata/${UUID.randomUUID()}.jpg")
@@ -532,7 +507,6 @@ fun AddWisataScreen(
                 }
             }
             
-            // Bottom spacing
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

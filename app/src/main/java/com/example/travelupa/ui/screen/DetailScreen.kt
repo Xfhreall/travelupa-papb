@@ -54,22 +54,18 @@ fun DetailScreen(
     val repository = remember { WisataRepository() }
     val scrollState = rememberScrollState()
     
-    // State
     var wisata by remember { mutableStateOf<TempatWisata?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     
-    // Fetch wisata data from Firestore
     LaunchedEffect(tempatId) {
         wisata = repository.getWisataById(tempatId)
         isLoading = false
     }
     
-    // Get related data
     val provinsi = wisata?.let { repository.getProvinsiById(it.provinsiId) }
     val kategori = wisata?.let { repository.getKategoriById(it.kategoriId) }
     val jenisTempat = wisata?.let { repository.getJenisTempatById(it.jenisTempatId) }
     
-    // Format harga
     val formattedHarga = wisata?.let {
         if (it.harga > 0) {
             NumberFormat.getCurrencyInstance(Locale("id", "ID")).format(it.harga)
@@ -78,7 +74,6 @@ fun DetailScreen(
         }
     } ?: "Gratis"
     
-    // Function to open Google Maps
     fun openGoogleMaps() {
         wisata?.let { w ->
             if (w.latitude != 0.0 && w.longitude != 0.0) {
@@ -142,13 +137,11 @@ fun DetailScreen(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            // Hero Image Section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(320.dp)
             ) {
-                // Background Image
                 Image(
                     painter = wisata!!.gambarUrl?.let { url ->
                         rememberAsyncImagePainter(
@@ -165,7 +158,6 @@ fun DetailScreen(
                     contentScale = ContentScale.Crop
                 )
                 
-                // Top gradient for status bar
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -180,7 +172,6 @@ fun DetailScreen(
                         )
                 )
                 
-                // Bottom gradient for title
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -196,7 +187,6 @@ fun DetailScreen(
                         )
                 )
                 
-                // Top Bar with back and actions
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -205,7 +195,6 @@ fun DetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Back button
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier
@@ -270,7 +259,6 @@ fun DetailScreen(
                         .align(Alignment.BottomStart)
                         .padding(20.dp)
                 ) {
-                    // Kategori badge
                     kategori?.let {
                         Surface(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
@@ -315,13 +303,11 @@ fun DetailScreen(
                 }
             }
             
-            // Content Section
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-                // Quick Info Cards
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -350,7 +336,6 @@ fun DetailScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Description Section
                 Text(
                     text = "Tentang Tempat Ini",
                     style = MaterialTheme.typography.titleLarge.copy(
@@ -370,7 +355,6 @@ fun DetailScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Highlights Section
                 Text(
                     text = "Highlights",
                     style = MaterialTheme.typography.titleLarge.copy(

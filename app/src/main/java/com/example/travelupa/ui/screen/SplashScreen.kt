@@ -36,12 +36,10 @@ import kotlinx.coroutines.delay
 fun SplashScreen(
     onSplashComplete: () -> Unit
 ) {
-    // Animation states
     val logoScale = remember { Animatable(0f) }
     val logoAlpha = remember { Animatable(0f) }
     val taglineAlpha = remember { Animatable(0f) }
     
-    // Gradient background
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(
             GradientTealStart,
@@ -49,9 +47,7 @@ fun SplashScreen(
         )
     )
     
-    // Launch animations
     LaunchedEffect(Unit) {
-        // Logo scale animation
         logoScale.animateTo(
             targetValue = 1f,
             animationSpec = tween(
@@ -62,7 +58,6 @@ fun SplashScreen(
     }
     
     LaunchedEffect(Unit) {
-        // Logo fade in
         logoAlpha.animateTo(
             targetValue = 1f,
             animationSpec = tween(
@@ -72,7 +67,6 @@ fun SplashScreen(
     }
     
     LaunchedEffect(Unit) {
-        // Tagline fade in with delay
         delay(500)
         taglineAlpha.animateTo(
             targetValue = 1f,
@@ -82,7 +76,6 @@ fun SplashScreen(
         )
     }
     
-    // Navigate after splash duration
     LaunchedEffect(Unit) {
         delay(2500)
         onSplashComplete()
@@ -98,7 +91,6 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo Icon with animation
             Box(
                 modifier = Modifier
                     .scale(logoScale.value)
@@ -114,7 +106,6 @@ fun SplashScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // App Name with animation
             Text(
                 text = "Travel Lupa",
                 style = MaterialTheme.typography.displaySmall.copy(
@@ -128,7 +119,6 @@ fun SplashScreen(
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // Tagline with delayed animation
             Text(
                 text = "Solusi buat kamu yang lupa kemana-mana",
                 style = MaterialTheme.typography.bodyLarge,
