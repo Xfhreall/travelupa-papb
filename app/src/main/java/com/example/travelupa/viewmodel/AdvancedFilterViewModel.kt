@@ -51,12 +51,17 @@ class AdvancedFilterViewModel {
     }
     
     private fun matchesCondition(wisata: TempatWisata, condition: FilterCondition): Boolean {
+        if (condition.field == FilterField.HARGA) {
+            val budgetInput = condition.value.toLongOrNull() ?: return true
+            return wisata.harga <= budgetInput
+        }
+        
         val fieldValue = when (condition.field) {
             FilterField.NAMA -> wisata.nama
             FilterField.KATEGORI -> wisata.kategoriId
             FilterField.JENIS_TEMPAT -> wisata.jenisTempatId
             FilterField.PROVINSI -> wisata.provinsiId
-            FilterField.HARGA -> wisata.harga.toString()
+            FilterField.HARGA -> "" 
         }
         return fieldValue.contains(condition.value, ignoreCase = true)
     }

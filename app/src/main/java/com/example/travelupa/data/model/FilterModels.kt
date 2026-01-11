@@ -4,7 +4,6 @@ import java.util.UUID
 
 enum class FilterOperator(val displayName: String) {
     CONTAINS("mengandung");
-    
     companion object {
         fun getOperatorsForField(field: FilterField): List<FilterOperator> {
             return listOf(CONTAINS)
